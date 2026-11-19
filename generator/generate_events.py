@@ -68,7 +68,7 @@ def main():
         day = today - datetime.timedelta(days=days_ago)
         files = [make_file(day) for _ in range(FILES_PER_DAY)]
         files.append(random.choice(files))  # duplicate a random file to simulate duplicates
-        files.append(make_file(today)[:-10 ]) 
+        files.append(make_file(today)[:-10 ]) # add corrupted file to simulate a corrupted file
         for file in files:
             filename = f"raw/events/dt={day:%Y-%m-%d}/{random_name()}"
             write(filename, file)
