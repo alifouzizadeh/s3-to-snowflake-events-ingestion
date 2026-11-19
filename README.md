@@ -39,17 +39,17 @@ strictly between 2 KB and 16 KB. File names and extensions are random. Running i
 
 ## Edge cases
 
-| Case | Handling |
-|---|---|
-| DAG re-run / task retry | COPY skips files it has already loaded; the MERGE inserts only new `event_id`s |
-| Same events re-delivered in a new file | Landed twice, deduplicated by the MERGE (`QUALIFY ROW_NUMBER()`) |
-| File overwritten under the same name | Its checksum changes, so COPY loads it again; the MERGE keeps the first version of each event |
-| Corrupt / truncated file | `ON_ERROR = SKIP_FILE`: the file is skipped and the run continues; `check_quality` logs it |
-| Late file in an older day prefix | Every run re-reads the last `lookback_days` days; only new files are loaded |
-| Older late files / backfill | Run with a bigger window: `airflow dags test events_ingestion --conf '{"lookback_days": 10}'` |
-| Unpredictable names / extensions | COPY reads every file under the day prefix; the format is set on the stage |
-| Day without files | COPY processes 0 files, no error |
-| Event without `event_id` / bad timestamp | Stays in landing and is not merged / `TRY_TO_TIMESTAMP_TZ` gives NULL instead of failing |
+| Case                                       | Handling                                                                                        |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| DAG re-run / task retry                    | COPY skips files it has already loaded; the MERGE inserts only new `event_id`s                |
+| Same events re-delivered in a new file     | Landed twice, deduplicated by the MERGE (`QUALIFY ROW_NUMBER()`)                              |
+| File overwritten under the same name       | Its checksum changes, so COPY loads it again; the MERGE keeps the first version of each event   |
+| Corrupt / truncated file                   | `ON_ERROR = SKIP_FILE`: the file is skipped and the run continues; `check_quality` logs it  |
+| Late file in an older day prefix           | Every run re-reads the last `lookback_days` days; only new files are loaded                   |
+| Older late files / backfill                | Run with a bigger window: `airflow dags test events_ingestion --conf '{"lookback_days": 10}'` |
+| Unpredictable names / extensions           | COPY reads every file under the day prefix; the format is set on the stage                      |
+| Day without files                          | COPY processes 0 files, no error                                                                |
+| Event without `event_id` / bad timestamp | Stays in landing and is not merged / `TRY_TO_TIMESTAMP_TZ` gives NULL instead of failing      |
 
 ## Run it
 
@@ -57,6 +57,7 @@ strictly between 2 KB and 16 KB. File names and extensions are random. Running i
 
 - Docker with Compose, and about 4 GB of memory for Docker (Airflow runs in standalone mode).
 - An S3 bucket, and an IAM user's access keys with:
+
   - `s3:PutObject` for the generator;
   - `s3:ListBucket`, `s3:GetBucketLocation`, `s3:GetObject` and `s3:GetObjectVersion` for the Snowflake stage.
 
@@ -180,7 +181,7 @@ Then delete the IAM access key.
 - **The service user has SYSADMIN** for simplicity. In production it would get a dedicated role with only the grants it needs.
 - **The MERGE matches against all of `CORE.EVENTS`**, so it catches re-deliveries across days. That's fine at this size; at scale I'd cluster by `DT` and limit the match window.
 - **The landing table grows forever.** It needs a retention policy once the data is merged.
-- **Daily schedule.** For lower latency, run it hourly or switch to Snowpipe auto-ingest.
+- **Daily schedule.** For lower latency, run it hourly.
 - **My test setup** used a bucket in eu-north-1 and Snowflake in eu-central-1. Cross-region transfer is negligible here; in production both would be in the same region.
 
 ## With more time
