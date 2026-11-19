@@ -83,7 +83,7 @@ In `.env`, fill in `EVENTS_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_K
 ### 2. Generate the source data
 
 ```bash
-docker run --rm --env-file .env <dockerhub-user>/ops-events-generator:latest
+docker run --rm --env-file .env alifouzizadeh/ops-events-generator:latest
 aws s3 ls s3://<bucket>/raw/events/ --recursive | wc -l    # optional: 156 on an empty bucket
 ```
 
